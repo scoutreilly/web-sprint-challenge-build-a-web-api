@@ -50,7 +50,8 @@ router.post("/", (req, res) => {
 });
 
 //update a current project with validation
-router.put("/:id", validateProjectId, validateProject, (req, res, next) => {
+router.put("/:id", validateProjectId, validateProject, (req, res) => {
+  const { id } = req.params.id;
   const { projectChanges } = req.body;
   if (
     (!projectChanges.name || !projectChanges.description,
@@ -61,21 +62,26 @@ router.put("/:id", validateProjectId, validateProject, (req, res, next) => {
       .json({ message: "the project with the specified id does not exist" });
   } else {
     projectsModel
-      .update(req.params.id, req.body)
+      .update(id, projectChanges)
       .then(() => {
-        return projectsModel.get(req.params.id);
+        return projectsModel.get(id);
       })
       .then((project) => {
         res.json(project);
       })
-      .catch(next);
+      .catch(() => {
+        res
+          .status(500)
+          .json({ message: "The project information could not be modified" });
+      });
   }
 });
 
 //delete project by id
 router.delete("/:id", validateProjectId, async (req, res, next) => {
+  const { id } = req.params.id;
   try {
-    await projectsModel.remove(req.params.id);
+    await projectsModel.remove(id);
     res.json(res.projectsModel);
   } catch (e) {
     next(e);
@@ -84,8 +90,9 @@ router.delete("/:id", validateProjectId, async (req, res, next) => {
 
 //get project actions
 router.get("/:id/actions", validateProjectId, async (req, res, next) => {
+  const { id } = req.params.id;
   projectsModel
-    .getProjectActions(req.params.id)
+    .getProjectActions(id)
     .then((actions) => {
       if (actions.length > 0) {
         res.status(200).json(actions);
