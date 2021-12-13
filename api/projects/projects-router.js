@@ -95,3 +95,5 @@ router.get("/:id/actions", validateProjectId, async (req, res, next) => {
     })
     .catch(next);
 });
+
+module.exports = router;
